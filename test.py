@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import random
 import math
 import numpy as np
@@ -36,7 +37,10 @@ class InferenceConfig(coco.CocoConfig):
     IMAGES_PER_GPU = 1
 
 config = InferenceConfig()
-config.display()
+
+#fconfig = open('out_config.txt', 'w')
+#fconfig.write("testing")
+#fconfig.close()
 
 # Create model object in inference mode.
 model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=config)
