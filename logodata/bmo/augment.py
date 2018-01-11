@@ -14,30 +14,37 @@ def resize_image_with_padding(img, new_shape, fill_cval=None, order=1):
     if fill_cval is None:
         fill_cval = np.max(img)
     ratio = np.min([n / i for n, i in zip(new_shape, img.shape)])
+    print(ratio)
     interm_shape = np.rint([s * ratio for s in img.shape]).astype(np.int)
+    print(interm_shape)
+
     interm_img = resize(img, interm_shape, order=order, cval=fill_cval)
 
     new_img = np.empty(new_shape, dtype=interm_img.dtype)
     new_img.fill(fill_cval)
 
-    #pad = [(n - s) >> 1 for n, s in zip(new_shape, interm_shape)]
-    #new_img[[slice(p, -p, None) if 0 != p else slice(None, None, None) 
-    #         for p in pad]] = interm_img
+    pad = [(n - s) >> 1 for n, s in zip(new_shape, interm_shape)]
+    print(new_shape)
+    print(interm_shape)
+    print(pad)
+    new_img[[slice(p, -p, None) if 0 != p else slice(None, None, None) 
+             for p in pad]] = interm_img
 
     return new_img
 
-ia.seed(1)
+ia.seed(100)
 
 images = np.array(
-    [cv2.imread("bmo_logo.jpg")],
+    [cv2.imread("./images/bmo_logo_empty_form.jpg")],
     dtype=np.uint8
 )
 
+cnt = 0
 for idx, image in enumerate(images):
     print(image.shape)
-    resized_image = resize_image_with_padding(img=image, new_shape=(200, 200), fill_cval=np.max(image)*0.95)
-    save_image("resized_img"+str(idx)+".jpg", image)
-
+    resized_image = resize_image_with_padding(img=image, new_shape=(400, 400, 2), fill_cval=np.max(image)*0.95)
+    save_image("resized_img"+str(cnt)+".jpg", image)
+    cnt += 1
 # Sometimes(0.5, ...) applies the given augmenter in 50% of all cases,
 # e.g. Sometimes(0.5, GaussianBlur(0.3)) would blur roughly every second
 # image.
@@ -76,5 +83,5 @@ seq = iaa.Sequential([
 
 augmented_images = seq.augment_images(images)
 
-for augmented_image in enumerate(augmented_images):
+for idx, augmented_image in enumerate(augmented_images):
     save_image("aug_img"+str(idx)+".jpg", augmented_image)
