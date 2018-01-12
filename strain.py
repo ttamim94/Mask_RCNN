@@ -107,24 +107,32 @@ class LogosDataset(utils.Dataset):
         img = Image.open('./logo_imgs/mins/'+logo+ext)
         img_w, img_h = img.size
 
+        bg_size = (1440, 900)
         bg_color = tuple(np.array([random.randint(0, 255) for _ in range(3)]))
-        background = Image.new('RGB', (1440, 900), bg_color)
+        background = Image.new('RGB', bg_size, bg_color)
         bg_w, bg_h = background.size
-        
-        print( random.randint(1, bg_w - img_w) )
+        background.putdata(self.white_noise(bg_w, bg_h))        
 
         offset = (
-            (bg_w - img_w) // random.randint(1, min(4, bg_w - img_w)), 
-            (bg_h - img_h) // random.randint(1, min(4, bg_h - img_h))
+            (bg_w - img_w) // random.randint(min(2, bg_w - img_w), min(6, bg_w - img_w)), 
+            (bg_h - img_h) // random.randint(min(2, bg_w - img_w), min(6, bg_h - img_h))
         )
         print("working")
 
         background.paste(img, offset)
         background.save('out.png')
-        
+      
+    def white_noise(self, width, height):
+        random_grid = map(lambda x: (
+                int(random.random() * 256),
+                int(random.random() * 256),
+                int(random.random() * 256)
+            ), [0] * width * height)
+        return list(random_grid)
+
 if __name__ == "__main__":
 
     training_dataset = LogosDataset()
-    training_dataset.randomize_logos(256, 256, 'cibc')
-
+    training_dataset.randomize_logos(256, 256, 'bmo')
+    training_dataset.white_noise(1440, 900)
 
