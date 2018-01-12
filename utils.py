@@ -241,6 +241,7 @@ class Dataset(object):
                 # source.class_id combination already available, skip
                 return
         # Add the class
+        print("inside add class")
         self.class_info.append({
             "source": source,
             "id": class_id,

@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 
 from PIL import Image
 from config import Config
+from scipy.ndimage import filters
 
 #%matplotlib inline 
 
@@ -83,14 +84,38 @@ class LogosDataset(utils.Dataset):
             dtype=np.uint8
         )
 
-    def load_logos(self, count, height, width):
+    def convert_image_to(self, img, new_format='opencv'):
+
+        if new_format == 'opencv':
+            new_img =  cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+            
+            #cv2.imshow('Demo Image', formatted_img)
+            #cv2.waitKey(0)
+            #cv2.destroyAllWindows()
+            
+            return new_img
+        elif new_format == 'pil':
+            new_img = Image.fromarray(img)
+            return new_img
+
+    def load_logos(self):
         
         self.add_class("logos", 1, "b2bank")
         self.add_class("logos", 2, "cibc")
         self.add_class("logos", 3, "bmo")
 
-        for i in range(count):
-            bg_color, shapes = self.randomize_image(height, width)
+        print(self.image_ids)
+        print(self.image_info)
+        print(self.class_info)
+
+        for idx, logo_class in enumerate(self.class_info):
+            print(logo_class['name'])
+
+        #for i in range(count):
+        #    logo = self.randomize_logo(width, height)
+        #    self.add_image("logos", image_id=i, path=None, 
+        #                    width=width, height=height,
+        #                    logos=logos)
 
     def augment_image(self, height, width, logo='cibc'):
 
@@ -102,10 +127,11 @@ class LogosDataset(utils.Dataset):
         
         return color, (x, y, s)
 
-    def randomize_logos(self, width, height, logo='cibc', ext='.jpg'):
+    def randomize_logo(self, width, height, logo='cibc', ext='.jpg'):
 
         img = Image.open('./logo_imgs/mins/'+logo+ext)
         img_w, img_h = img.size
+        print(img_w, img_h)
 
         bg_size = (1440, 900)
         bg_color = tuple(np.array([random.randint(0, 255) for _ in range(3)]))
@@ -119,9 +145,61 @@ class LogosDataset(utils.Dataset):
         )
         print("working")
 
+        opencvimg = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+        
+
+        #img = Image.fromarray(self.gaussian_noise(opencvimage))
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+
+        cv2.imshow('Demo Image', opencvimg)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+
+        
+        #cv2.line(opencvimg,(0,0),(200,300),(255,255,255),50)        
+        #cv2.rectangle(img,(500,250),(1000,500),(0,0,255),15)
+        #cv2.circle(img,(447,63), 63, (0,255,0), -1)
+        #pts = np.array([[100,50],[200,300],[700,200],[500,100]], np.int32)
+        #pts = pts.reshape((-1,1,2))
+        #cv2.polylines(img, [pts], True, (0,255,255), 3)
+        #font = cv2.FONT_HERSHEY_SIMPLEX
+        #cv2.putText(img,'OpenCV Tuts!',(10,500), font, 6, (200,255,155), 13, cv2.LINE_AA)
+        #cv2.imshow('image',img)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
+
+
+
+        #m = (50, 50, 50)
+        #s = (50, 50, 50)
+        #img = cv2.randn(img, m, s)
+
         background.paste(img, offset)
-        background.save('out.png')
-      
+
+        background.save('./train/cibc.png')
+
+    def randomize_forms(self, logo='cibc', ext='.jpg'):
+
+        img = Image.open('./logo_imgs/'+logo+ext)
+        img_w, img_h = img.size
+        img.putdata(self.white_noise(img_w, img_h))    
+        img.save('out.png')    
+
+        #offset = (
+        #    (bg_w - img_w) // random.randint(min(2, bg_w - img_w), min(6, bg_w - img_w)), 
+        #    (bg_h - img_h) // random.randint(min(2, bg_w - img_w), min(6, bg_h - img_h))
+        #)
+        #print("working")
+
+    def gaussian_noise(self, img, radius=5):
+        img2 = np.zeros(img.shape)
+        for i in range(3):
+            img2[:,:,i] = filters.gaussian_filter(img[:,:,i], 1)
+        img2 = np.array(img2, 'uint8')
+        return img2
+
     def white_noise(self, width, height):
         random_grid = map(lambda x: (
                 int(random.random() * 256),
@@ -133,6 +211,14 @@ class LogosDataset(utils.Dataset):
 if __name__ == "__main__":
 
     training_dataset = LogosDataset()
-    training_dataset.randomize_logos(256, 256, 'bmo')
-    training_dataset.white_noise(1440, 900)
+    #training_dataset.randomize_logos(1024, 1024, 'bmo')
+    training_dataset.load_logos()
+
+    #print(config.IMAGE_SHAPE[0])
+    #print(config.IMAGE_SHAPE[1])
+
+    #training_dataset.load_shapes(1, config)
+
+    #training_dataset.randomize_forms()
+    #training_dataset.white_noise(1440, 900)
 
